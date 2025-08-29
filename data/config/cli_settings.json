@@ -1,0 +1,11 @@
+{
+  "cli_root_path": "../musubi-tuner",
+  "cli_venv_path": "../musubi-tuner/venv",
+  "execution_settings": {
+    "use_new_console": true,
+    "detached_process": true,
+    "show_console": true,
+    "log_output": true,
+    "log_dir": "logs/executions"
+  }
+}

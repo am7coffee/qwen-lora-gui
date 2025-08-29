@@ -1,0 +1,462 @@
+{
+  "version": "2.0",
+  "optimizers": {
+    "AdamW8bit": {
+      "display_name": "AdamW8bit (メモリ効率)",
+      "command_value": "bitsandbytes.optim.AdamW8bit",
+      "description": "8ビット量子化による省メモリ版AdamW。大規模モデルの学習に適しています。迷ったらとりあえずこれ。",
+      "category": "quantized",
+      "arguments": [
+        {
+          "name": "betas",
+          "display_name": "モーメンタム係数",
+          "type": "string",
+          "default": "(0.9, 0.999)",
+          "required": false,
+          "description": "1次と2次のモーメント推定の指数減衰率（例: 0.9, 0.999）",
+          "ui_component": "text_input",
+          "placeholder": "(0.9, 0.999)"
+        },
+        {
+          "name": "eps",
+          "display_name": "イプシロン",
+          "type": "string",
+          "default": "1e-8",
+          "required": false,
+          "description": "数値安定性のための小さな定数",
+          "ui_component": "text_input",
+          "placeholder": "1e-8"
+        },
+        {
+          "name": "weight_decay",
+          "display_name": "Weight Decay",
+          "type": "float",
+          "default": 0.01,
+          "min": 0.0,
+          "max": 1.0,
+          "required": false,
+          "description": "L2正則化の強度",
+          "ui_component": "number_input",
+          "step": 0.001,
+          "precision": 4
+        },
+        {
+          "name": "amsgrad",
+          "display_name": "AMSGrad",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "False",
+          "required": false,
+          "description": "AMSGradアルゴリズムを使用",
+          "ui_component": "dropdown"
+        },
+        {
+          "name": "optim_bits",
+          "display_name": "量子化ビット数",
+          "type": "choice",
+          "choices": [6, 8, 32],
+          "default": 6,
+          "required": false,
+          "description": "オプティマイザー状態の量子化ビット数",
+          "ui_component": "dropdown"
+        }
+      ]
+    },
+    "prodigyopt.Prodigy": {
+      "display_name": "Prodigy (自動学習率調整)",
+      "command_value": "prodigyopt.Prodigy",
+      "description": "学習率を自動調整する適応的オプティマイザー。ハイパーパラメータ調整の手間を削減します。推奨される学習率はなんと1.0",
+      "category": "adaptive",
+      "arguments": [
+        {
+          "name": "betas",
+          "display_name": "モーメンタム係数",
+          "type": "string",
+          "default": "(0.9,0.999)",
+          "required": false,
+          "description": "1次と2次のモーメント推定の指数減衰率（例: 0.9, 0.999）",
+          "ui_component": "text_input",
+          "placeholder": "(0.9,0.999)"
+        },
+        {
+          "name": "d_coef",
+          "display_name": "D係数",
+          "type": "float",
+          "default": 1.0,
+          "min": 0.0,
+          "required": false,
+          "description": "学習率のスケーリング係数",
+          "ui_component": "number_input",
+          "step": 0.1
+        },
+        {
+          "name": "d0",
+          "display_name": "初期D値",
+          "type": "float",
+          "default": 1e-6,
+          "min": 0,
+          "required": false,
+          "description": "初期適応パラメータ",
+          "ui_component": "number_input"
+        },
+        {
+          "name": "use_bias_correction",
+          "display_name": "バイアス補正",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "True",
+          "required": false,
+          "description": "Adam型のバイアス補正を使用",
+          "ui_component": "dropdown"
+        },
+        {
+          "name": "safeguard_warmup",
+          "display_name": "セーフガード",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "True",
+          "required": false,
+          "description": "初期の不安定性を防ぐ",
+          "ui_component": "dropdown"
+        },
+        {
+          "name": "decouple",
+          "display_name": "デカップリング",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "True",
+          "required": false,
+          "description": "Weight decayをデカップリング",
+          "ui_component": "dropdown"
+        }
+      ]
+    },
+    "torch.optim.AdamW": {
+      "display_name": "AdamW (標準)",
+      "command_value": "torch.optim.AdamW",
+      "description": "PyTorch標準のAdamW。Weight Decayが改善されたAdam最適化アルゴリズムです。",
+      "category": "standard",
+      "arguments": [
+        {
+          "name": "betas",
+          "display_name": "モーメンタム係数",
+          "type": "string",
+          "default": "(0.9,0.999)",
+          "required": false,
+          "description": "1次と2次のモーメント推定の指数減衰率（例: 0.9, 0.999）",
+          "ui_component": "text_input",
+          "placeholder": "(0.9,0.999)"
+        },
+        {
+          "name": "eps",
+          "display_name": "イプシロン",
+          "type": "string",
+          "default": "1e-8",
+          "required": false,
+          "description": "数値安定性のための小さな定数",
+          "ui_component": "text_input",
+          "placeholder": "1e-8"
+        },
+        {
+          "name": "weight_decay",
+          "display_name": "Weight Decay",
+          "type": "float",
+          "default": 0.01,
+          "min": 0.0,
+          "max": 1.0,
+          "required": false,
+          "description": "L2正則化の強度",
+          "ui_component": "number_input",
+          "step": 0.001,
+          "precision": 4
+        },
+        {
+          "name": "amsgrad",
+          "display_name": "AMSGrad",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "False",
+          "required": false,
+          "description": "AMSGradアルゴリズムを使用",
+          "ui_component": "dropdown"
+        }
+      ]
+    },
+    "torch.optim.Adam": {
+      "display_name": "Adam (標準)",
+      "command_value": "torch.optim.Adam",
+      "description": "PyTorch標準のAdam最適化アルゴリズム。適応的学習率で安定した学習が可能です。",
+      "category": "standard",
+      "arguments": [
+        {
+          "name": "betas",
+          "display_name": "モーメンタム係数",
+          "type": "string",
+          "default": "(0.9,0.999)",
+          "required": false,
+          "description": "1次と2次のモーメント推定の指数減衰率（例: 0.9, 0.999）",
+          "ui_component": "text_input",
+          "placeholder": "(0.9,0.999)"
+        },
+        {
+          "name": "eps",
+          "display_name": "イプシロン",
+          "type": "string",
+          "default": "1e-8",
+          "required": false,
+          "description": "数値安定性のための小さな定数",
+          "ui_component": "text_input",
+          "placeholder": "1e-8"
+        },
+        {
+          "name": "weight_decay",
+          "display_name": "Weight Decay",
+          "type": "float",
+          "default": 0.0,
+          "min": 0.0,
+          "max": 1.0,
+          "required": false,
+          "description": "L2正則化の強度",
+          "ui_component": "number_input",
+          "step": 0.001,
+          "precision": 4
+        },
+        {
+          "name": "amsgrad",
+          "display_name": "AMSGrad",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "True",
+          "required": false,
+          "description": "AMSGradアルゴリズムを使用",
+          "ui_component": "dropdown"
+        }
+      ]
+    },
+    "RAdamScheduleFree": {
+      "display_name": "RAdamScheduleFree (スケジュール不要)",
+      "command_value": "schedulefree.RAdamScheduleFree",
+      "description": "Schedule-Free版RAdam。学習率スケジューリングやウォームアップが不要で、自動的に最適な学習率を調整します。フリーになるのはスケジュールだけで学習率の設定は必要。",
+      "category": "adaptive",
+      "arguments": [
+        {
+          "name": "betas",
+          "display_name": "モーメンタム係数",
+          "type": "string",
+          "default": "(0.9,0.999)",
+          "required": false,
+          "description": "1次と2次のモーメント推定の指数減衰率",
+          "ui_component": "text_input",
+          "placeholder": "(0.9,0.999)"
+        },
+        {
+          "name": "eps",
+          "display_name": "イプシロン",
+          "type": "string",
+          "default": "1e-8",
+          "required": false,
+          "description": "数値安定性のための小さな定数",
+          "ui_component": "text_input",
+          "placeholder": "1e-8"
+        },
+        {
+          "name": "weight_decay",
+          "display_name": "Weight Decay",
+          "type": "float",
+          "default": 0.0,
+          "min": 0.0,
+          "max": 1.0,
+          "required": false,
+          "description": "L2正則化の強度",
+          "ui_component": "number_input",
+          "step": 0.001,
+          "precision": 4
+        },
+        {
+          "name": "r",
+          "display_name": "多項式重み係数",
+          "type": "float",
+          "default": 0.0,
+          "min": 0.0,
+          "max": 2.0,
+          "required": false,
+          "description": "平均化における多項式重み付けのパワー",
+          "ui_component": "number_input",
+          "step": 0.1,
+          "precision": 1
+        },
+        {
+          "name": "weight_lr_power",
+          "display_name": "重み学習率パワー",
+          "type": "float",
+          "default": 2.0,
+          "min": 0.0,
+          "max": 3.0,
+          "required": false,
+          "description": "ウォームアップ中の重み計算に使用するパワー",
+          "ui_component": "number_input",
+          "step": 0.1,
+          "precision": 1
+        },
+        {
+          "name": "foreach",
+          "display_name": "Foreach実装",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "True",
+          "required": false,
+          "description": "高速なforeach実装を使用（推奨）",
+          "ui_component": "dropdown"
+        },
+        {
+          "name": "silent_sgd_phase",
+          "display_name": "静的SGDフェーズ",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "True",
+          "required": false,
+          "description": "初期のSGDフェーズを無効化",
+          "ui_component": "dropdown"
+        }
+      ]
+    },
+    "pytorch_optimizer.CAME": {
+      "display_name": "CAME (信頼度誘導適応)",
+      "command_value": "pytorch_optimizer.CAME",
+      "description": "Confidence-guided Adaptive Memory Efficient Optimizer。AdamWと同等の収束性能を保ちながらメモリ効率を向上させます。",
+      "category": "memory_efficient",
+      "arguments": [
+        {
+          "name": "betas",
+          "display_name": "モーメンタム係数（3つ）",
+          "type": "string",
+          "default": "(0.9,0.999,0.9999)",
+          "required": false,
+          "description": "3つのモーメント推定係数（β1, β2, β3）",
+          "ui_component": "text_input",
+          "placeholder": "(0.9,0.999,0.9999)"
+        },
+        {
+          "name": "eps",
+          "display_name": "イプシロン（2つ）",
+          "type": "string",
+          "default": "(1e-30,1e-16)",
+          "required": false,
+          "description": "数値安定性のための定数（eps1, eps2）",
+          "ui_component": "text_input",
+          "placeholder": "(1e-30,1e-16)"
+        },
+        {
+          "name": "weight_decay",
+          "display_name": "Weight Decay",
+          "type": "float",
+          "default": 1e-2,
+          "min": 0.0,
+          "max": 1.0,
+          "required": false,
+          "description": "L2正則化の強度",
+          "ui_component": "number_input",
+          "step": 1e-3,
+          "precision": 4
+        },
+        {
+          "name": "clip_threshold",
+          "display_name": "クリップ閾値",
+          "type": "float",
+          "default": 1.0,
+          "min": 0.1,
+          "max": 10.0,
+          "required": false,
+          "description": "勾配クリッピングの閾値",
+          "ui_component": "number_input",
+          "step": 0.1,
+          "precision": 1
+        },
+        {
+          "name": "decay_rate",
+          "display_name": "減衰率",
+          "type": "float",
+          "default": -0.8,
+          "min": -1.0,
+          "max": 0.0,
+          "required": false,
+          "description": "適応的学習率の減衰率",
+          "ui_component": "number_input",
+          "step": 0.1,
+          "precision": 1
+        },
+        {
+          "name": "factorization_dim",
+          "display_name": "因数分解次元",
+          "type": "int",
+          "default": 128,
+          "min": 32,
+          "max": 1024,
+          "required": false,
+          "description": "メモリ効率化のための因数分解次元",
+          "ui_component": "number_input",
+          "step": 32
+        }
+      ]
+    },
+    "lion_pytorch.Lion": {
+      "display_name": "Lion (メモリ効率・高性能)",
+      "command_value": "lion_pytorch.Lion",
+      "description": "Sign-based adaptive optimizerで、AdamWより少ないメモリで同等以上の性能を発揮。LoRA学習に適しています。",
+      "category": "memory_efficient",
+      "arguments": [
+        {
+          "name": "betas",
+          "display_name": "モーメンタム係数",
+          "type": "string",
+          "default": "(0.9,0.99)",
+          "required": false,
+          "description": "符号更新用(β1)と信頼度更新用(β2)の指数減衰率。Lionでは通常より高い値を使用",
+          "ui_component": "text_input",
+          "placeholder": "(0.9,0.99)"
+        },
+        {
+          "name": "weight_decay",
+          "display_name": "Weight Decay",
+          "type": "float",
+          "default": 0.01,
+          "min": 0.0,
+          "max": 0.1,
+          "required": false,
+          "description": "L2正則化の強度。Lionでは比較的小さめの値が推奨",
+          "ui_component": "number_input",
+          "step": 0.001,
+          "precision": 4
+        },
+        {
+          "name": "use_triton",
+          "display_name": "Tritonカーネル",
+          "type": "choice",
+          "choices": ["True", "False"],
+          "default": "False",
+          "required": false,
+          "description": "Triton最適化カーネルを使用（環境によっては不安定な場合あり）",
+          "ui_component": "dropdown"
+        }
+      ]
+    },
+    "Custom...": {
+      "display_name": "カスタム（手動設定）",
+      "command_value": "Custom...",
+      "description": "カスタムオプティマイザーを手動で設定します",
+      "category": "custom",
+      "arguments": []
+    }
+  },
+  "ui_config": {
+    "layout": {
+      "columns": 2,
+      "show_descriptions": true,
+      "compact_mode": false
+    },
+    "validation": {
+      "show_warnings": true,
+      "prevent_invalid_submission": false
+    }
+  }
+}

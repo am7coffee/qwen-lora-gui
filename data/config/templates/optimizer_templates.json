@@ -1,0 +1,159 @@
+{
+  "AdamW8bit": {
+    "display_name": "AdamW8bit (メモリ効率)",
+    "description": "8bit量子化によりメモリ使用量を削減したAdamW",
+    "args": {
+      "betas": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "(0.9, 0.999)",
+        "description": "モーメンタム係数",
+        "placeholder": "(0.9, 0.999)"
+      },
+      "eps": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "1e-8",
+        "description": "数値安定性用イプシロン",
+        "placeholder": "1e-8"
+      },
+      "weight_decay": {
+        "type": "str", 
+        "ui_element": "Textbox",
+        "default": "0.01",
+        "description": "重み減衰",
+        "placeholder": "0.01"
+      },
+      "amsgrad": {
+        "type": "str",
+        "ui_element": "Dropdown",
+        "default": "false",
+        "choices": ["true", "false"],
+        "description": "AMSGrad使用"
+      },
+      "optim_bits": {
+        "type": "str",
+        "ui_element": "Dropdown",
+        "default": "32", 
+        "choices": ["8", "32"],
+        "description": "量子化ビット数"
+      }
+    }
+  },
+  "prodigyopt.Prodigy": {
+    "display_name": "Prodigy (推奨)",
+    "description": "自動学習率調整オプティマイザー。LoRA学習に最適",
+    "args": {
+      "betas": {
+        "type": "str", 
+        "ui_element": "Textbox",
+        "default": "(0.9, 0.99)",
+        "description": "モーメンタム係数",
+        "placeholder": "(0.9, 0.99)"
+      },
+      "eps": {
+        "type": "str",
+        "ui_element": "Textbox", 
+        "default": "1e-8",
+        "description": "数値安定性用イプシロン",
+        "placeholder": "1e-8"
+      },
+      "weight_decay": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "0",
+        "description": "重み減衰",
+        "placeholder": "0"
+      },
+      "decouple": {
+        "type": "str",
+        "ui_element": "Dropdown",
+        "default": "true",
+        "choices": ["true", "false"],
+        "description": "AdamW式分離型重み減衰"
+      },
+      "use_bias_correction": {
+        "type": "str",
+        "ui_element": "Dropdown", 
+        "default": "true",
+        "choices": ["true", "false"],
+        "description": "Adamバイアス補正使用"
+      },
+      "d0": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "1e-6", 
+        "description": "D推定初期値",
+        "placeholder": "1e-6"
+      }
+    }
+  },
+  "AdamW": {
+    "display_name": "AdamW (標準)",
+    "description": "PyTorch標準のAdamWオプティマイザー",
+    "args": {
+      "betas": {
+        "type": "str",
+        "ui_element": "Textbox", 
+        "default": "(0.9, 0.999)",
+        "description": "モーメンタム係数",
+        "placeholder": "(0.9, 0.999)"
+      },
+      "eps": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "1e-8",
+        "description": "数値安定性用イプシロン",
+        "placeholder": "1e-8"
+      },
+      "weight_decay": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "0.01", 
+        "description": "重み減衰",
+        "placeholder": "0.01"
+      },
+      "amsgrad": {
+        "type": "str",
+        "ui_element": "Dropdown",
+        "default": "false",
+        "choices": ["true", "false"],
+        "description": "AMSGrad使用"
+      }
+    }
+  },
+  "SGD": {
+    "display_name": "SGD (基本)",
+    "description": "確率的勾配降下法。シンプルで安定",
+    "args": {
+      "momentum": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "0.9", 
+        "description": "モーメンタム",
+        "placeholder": "0.9"
+      },
+      "weight_decay": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "0",
+        "description": "重み減衰",
+        "placeholder": "0"
+      },
+      "dampening": {
+        "type": "str",
+        "ui_element": "Textbox",
+        "default": "0",
+        "description": "ダンピング",
+        "placeholder": "0"
+      },
+      "nesterov": {
+        "type": "str", 
+        "ui_element": "Dropdown",
+        "default": "false",
+        "choices": ["true", "false"],
+        "description": "Nesterovモーメンタム"
+      }
+    }
+  }
+}

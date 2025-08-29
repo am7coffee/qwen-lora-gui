@@ -1,0 +1,543 @@
+{
+  "parameters": {
+    "output_dir": {
+      "enabled": true,
+      "value": "D:\\dataset\\sample_dataset\\output"
+    },
+    "output_name": {
+      "enabled": true,
+      "value": "qwen-AdamW8bit_1e-3"
+    },
+    "resume": {
+      "enabled": false,
+      "value": ""
+    },
+    "dit": {
+      "enabled": true,
+      "value": "D:/model/diffusers/Qwen-Image/transformer/diffusion_pytorch_model-00001-of-00009.safetensors"
+    },
+    "vae": {
+      "enabled": true,
+      "value": "D:/model/diffusers/Qwen-Image/vae/diffusion_pytorch_model.safetensors"
+    },
+    "vae_dtype": {
+      "enabled": false,
+      "value": "fp16"
+    },
+    "text_encoder": {
+      "enabled": true,
+      "value": "D:/model/diffusers/Qwen-Image/text_encoder/model-00001-of-00004.safetensors"
+    },
+    "save_every_n_epochs": {
+      "enabled": true,
+      "value": 1
+    },
+    "save_every_n_steps": {
+      "enabled": false,
+      "value": 0
+    },
+    "save_last_n_epochs": {
+      "enabled": false,
+      "value": 0
+    },
+    "save_last_n_epochs_state": {
+      "enabled": false,
+      "value": 0
+    },
+    "save_last_n_steps": {
+      "enabled": false,
+      "value": 0
+    },
+    "save_last_n_steps_state": {
+      "enabled": false,
+      "value": 0
+    },
+    "save_state": {
+      "enabled": false,
+      "value": ""
+    },
+    "save_state_on_train_end": {
+      "enabled": false,
+      "value": ""
+    },
+    "metadata_title": {
+      "enabled": false,
+      "value": ""
+    },
+    "metadata_author": {
+      "enabled": false,
+      "value": ""
+    },
+    "metadata_description": {
+      "enabled": false,
+      "value": ""
+    },
+    "metadata_license": {
+      "enabled": false,
+      "value": ""
+    },
+    "metadata_tags": {
+      "enabled": false,
+      "value": ""
+    },
+    "no_metadata": {
+      "enabled": false,
+      "value": ""
+    },
+    "config_file": {
+      "enabled": false,
+      "value": ""
+    },
+    "dataset_config": {
+      "enabled": true,
+      "value": "D:\\dataset\\sample_dataset\\dataset_config_batch1_r8_640.toml"
+    },
+    "max_train_steps": {
+      "enabled": false,
+      "value": 0
+    },
+    "max_train_epochs": {
+      "enabled": true,
+      "value": 8
+    },
+    "seed": {
+      "enabled": true,
+      "value": 42
+    },
+    "training_comment": {
+      "enabled": false,
+      "value": ""
+    },
+    "gradient_checkpointing": {
+      "enabled": true,
+      "value": ""
+    },
+    "gradient_accumulation_steps": {
+      "enabled": false,
+      "value": 1
+    },
+    "mixed_precision": {
+      "enabled": true,
+      "value": "bf16"
+    },
+    "blocks_to_swap": {
+      "enabled": true,
+      "value": 40
+    },
+    "max_grad_norm": {
+      "enabled": false,
+      "value": 0
+    },
+    "max_data_loader_n_workers": {
+      "enabled": true,
+      "value": 1
+    },
+    "persistent_data_loader_workers": {
+      "enabled": true,
+      "value": ""
+    },
+    "custom_args": {
+      "enabled": false,
+      "value": ""
+    },
+    "optimizer_type": {
+      "enabled": true,
+      "value": "bitsandbytes.optim.AdamW8bit"
+    },
+    "learning_rate": {
+      "enabled": true,
+      "value": "1e-3"
+    },
+    "lr_scheduler": {
+      "enabled": true,
+      "value": "cosine_with_restarts"
+    },
+    "lr_warmup_steps": {
+      "enabled": true,
+      "value": 0
+    },
+    "lr_decay_steps": {
+      "enabled": false,
+      "value": 0
+    },
+    "lr_scheduler_num_cycles": {
+      "enabled": true,
+      "value": 4
+    },
+    "lr_scheduler_power": {
+      "enabled": false,
+      "value": 1
+    },
+    "lr_scheduler_min_lr_ratio": {
+      "enabled": false,
+      "value": 0
+    },
+    "lr_scheduler_timescale": {
+      "enabled": false,
+      "value": 0
+    },
+    "lr_scheduler_type": {
+      "enabled": false,
+      "value": ""
+    },
+    "network_dim": {
+      "enabled": true,
+      "value": 8
+    },
+    "network_alpha": {
+      "enabled": true,
+      "value": 4
+    },
+    "network_module": {
+      "enabled": true,
+      "value": "networks.lora_qwen_image"
+    },
+    "network_weights": {
+      "enabled": false,
+      "value": ""
+    },
+    "network_dropout": {
+      "enabled": false,
+      "value": 0
+    },
+    "dim_from_weights": {
+      "enabled": false,
+      "value": ""
+    },
+    "scale_weight_norms": {
+      "enabled": false,
+      "value": 0
+    },
+    "network_args": {
+      "enabled": false,
+      "value": ""
+    },
+    "base_weights": {
+      "enabled": false,
+      "value": ""
+    },
+    "base_weights_multiplier": {
+      "enabled": false,
+      "value": ""
+    },
+    "timestep_sampling": {
+      "enabled": true,
+      "value": "qwen_shift"
+    },
+    "weighting_scheme": {
+      "enabled": true,
+      "value": "logit_normal"
+    },
+    "guidance_scale": {
+      "enabled": true,
+      "value": 3.5
+    },
+    "discrete_flow_shift": {
+      "enabled": false,
+      "value": 1
+    },
+    "sigmoid_scale": {
+      "enabled": false,
+      "value": 0
+    },
+    "logit_mean": {
+      "enabled": false,
+      "value": 0
+    },
+    "logit_std": {
+      "enabled": false,
+      "value": 0
+    },
+    "mode_scale": {
+      "enabled": false,
+      "value": 0
+    },
+    "min_timestep": {
+      "enabled": false,
+      "value": 0
+    },
+    "max_timestep": {
+      "enabled": false,
+      "value": 1000
+    },
+    "preserve_distribution_shape": {
+      "enabled": false,
+      "value": ""
+    },
+    "show_timesteps": {
+      "enabled": false,
+      "value": "None"
+    },
+    "sdpa": {
+      "enabled": true,
+      "value": ""
+    },
+    "flash_attn": {
+      "enabled": false,
+      "value": ""
+    },
+    "sage_attn": {
+      "enabled": false,
+      "value": ""
+    },
+    "xformers": {
+      "enabled": false,
+      "value": ""
+    },
+    "flash3": {
+      "enabled": false,
+      "value": ""
+    },
+    "split_attn": {
+      "enabled": false,
+      "value": ""
+    },
+    "fp8_base": {
+      "enabled": true,
+      "value": ""
+    },
+    "fp8_scaled": {
+      "enabled": false,
+      "value": ""
+    },
+    "fp8_vl": {
+      "enabled": false,
+      "value": ""
+    },
+    "img_in_txt_in_offloading": {
+      "enabled": false,
+      "value": ""
+    },
+    "dynamo_backend": {
+      "enabled": false,
+      "value": "None"
+    },
+    "dynamo_mode": {
+      "enabled": false,
+      "value": "default"
+    },
+    "dynamo_fullgraph": {
+      "enabled": false,
+      "value": ""
+    },
+    "dynamo_dynamic": {
+      "enabled": false,
+      "value": ""
+    },
+    "ddp_timeout": {
+      "enabled": false,
+      "value": 0
+    },
+    "ddp_gradient_as_bucket_view": {
+      "enabled": false,
+      "value": ""
+    },
+    "ddp_static_graph": {
+      "enabled": false,
+      "value": ""
+    },
+    "logging_dir": {
+      "enabled": false,
+      "value": "./logs"
+    },
+    "log_with": {
+      "enabled": false,
+      "value": "tensorboard"
+    },
+    "log_prefix": {
+      "enabled": false,
+      "value": ""
+    },
+    "log_tracker_name": {
+      "enabled": false,
+      "value": ""
+    },
+    "wandb_run_name": {
+      "enabled": false,
+      "value": "None"
+    },
+    "wandb_api_key": {
+      "enabled": false,
+      "value": "None"
+    },
+    "log_tracker_config": {
+      "enabled": false,
+      "value": "None"
+    },
+    "log_config": {
+      "enabled": false,
+      "value": ""
+    },
+    "sample_every_n_steps": {
+      "enabled": false,
+      "value": 0
+    },
+    "sample_at_first": {
+      "enabled": false,
+      "value": ""
+    },
+    "sample_every_n_epochs": {
+      "enabled": false,
+      "value": 0
+    },
+    "sample_prompts": {
+      "enabled": false,
+      "value": "None"
+    },
+    "huggingface_repo_id": {
+      "enabled": false,
+      "value": "None"
+    },
+    "huggingface_repo_type": {
+      "enabled": false,
+      "value": "None"
+    },
+    "huggingface_path_in_repo": {
+      "enabled": false,
+      "value": "None"
+    },
+    "huggingface_token": {
+      "enabled": false,
+      "value": "None"
+    },
+    "huggingface_repo_visibility": {
+      "enabled": false,
+      "value": "None"
+    },
+    "save_state_to_huggingface": {
+      "enabled": false,
+      "value": ""
+    },
+    "resume_from_huggingface": {
+      "enabled": false,
+      "value": ""
+    },
+    "async_upload": {
+      "enabled": false,
+      "value": ""
+    },
+    "optimizer_args": {
+      "betas": {
+        "enabled": true,
+        "value": "(0.9, 0.999)"
+      },
+      "eps": {
+        "enabled": true,
+        "value": "1e-8"
+      },
+      "weight_decay": {
+        "enabled": true,
+        "value": 0.01
+      },
+      "amsgrad": {
+        "enabled": false,
+        "value": "False"
+      },
+      "optim_bits": {
+        "enabled": false,
+        "value": 6
+      }
+    }
+  },
+  "metadata": {
+    "name": "サンプル_AdamW8bit_1e-3",
+    "version": "3.2",
+    "platform": "win32",
+    "created_at": "2025-08-29T18:32:32.711979",
+    "gui_version": "3.0.0"
+  },
+  "commands_text": {
+    "precache": "python src/musubi_tuner/qwen_image_cache_latents.py --dataset_config D:\\dataset\\sample_dataset\\dataset_config_batch1_r8_640.toml --vae D:/model/diffusers/Qwen-Image/vae/diffusion_pytorch_model.safetensors --vae_chunk_size 32 --vae_tiling",
+    "text_encoder": "python src/musubi_tuner/qwen_image_cache_text_encoder_outputs.py --dataset_config D:\\dataset\\sample_dataset\\dataset_config_batch1_r8_640.toml --text_encoder D:/model/diffusers/Qwen-Image/text_encoder/model-00001-of-00004.safetensors --batch_size 16",
+    "training": "accelerate launch --num_cpu_threads_per_process 1 --mixed_precision bf16 src/musubi_tuner/qwen_image_train_network.py --dit D:/model/diffusers/Qwen-Image/transformer/diffusion_pytorch_model-00001-of-00009.safetensors --vae D:/model/diffusers/Qwen-Image/vae/diffusion_pytorch_model.safetensors --text_encoder D:/model/diffusers/Qwen-Image/text_encoder/model-00001-of-00004.safetensors --output_dir D:\\dataset\\sample_dataset\\output --output_name qwen-AdamW8bit_1e-3 --save_every_n_epochs 1 --dataset_config D:\\dataset\\sample_dataset\\dataset_config_batch1_r8_640.toml --seed 42 --max_train_epochs 8 --max_data_loader_n_workers 1 --persistent_data_loader_workers --gradient_checkpointing --mixed_precision bf16 --learning_rate 1e-3 --lr_scheduler cosine_with_restarts --lr_warmup_steps 0 --lr_scheduler_num_cycles 4 --network_module networks.lora_qwen_image --network_dim 8 --network_alpha 4 --timestep_sampling qwen_shift --weighting_scheme logit_normal --guidance_scale 3.5 --sdpa --fp8_base --blocks_to_swap 40 --optimizer_type bitsandbytes.optim.AdamW8bit --optimizer_args betas=(0.9, 0.999) --optimizer_args eps=1e-8 --optimizer_args weight_decay=0.01"
+  },
+  "commands": {
+    "precache": [
+      "python",
+      "src/musubi_tuner/qwen_image_cache_latents.py",
+      "--dataset_config",
+      "D:\\dataset\\sample_dataset\\dataset_config_batch1_r8_640.toml",
+      "--vae",
+      "D:/model/diffusers/Qwen-Image/vae/diffusion_pytorch_model.safetensors",
+      "--vae_chunk_size",
+      "32",
+      "--vae_tiling"
+    ],
+    "text_encoder": [
+      "python",
+      "src/musubi_tuner/qwen_image_cache_text_encoder_outputs.py",
+      "--dataset_config",
+      "D:\\dataset\\sample_dataset\\dataset_config_batch1_r8_640.toml",
+      "--text_encoder",
+      "D:/model/diffusers/Qwen-Image/text_encoder/model-00001-of-00004.safetensors",
+      "--batch_size",
+      "16"
+    ],
+    "training": [
+      "accelerate",
+      "launch",
+      "--num_cpu_threads_per_process",
+      "1",
+      "--mixed_precision",
+      "bf16",
+      "src/musubi_tuner/qwen_image_train_network.py",
+      "--dit",
+      "D:/model/diffusers/Qwen-Image/transformer/diffusion_pytorch_model-00001-of-00009.safetensors",
+      "--vae",
+      "D:/model/diffusers/Qwen-Image/vae/diffusion_pytorch_model.safetensors",
+      "--text_encoder",
+      "D:/model/diffusers/Qwen-Image/text_encoder/model-00001-of-00004.safetensors",
+      "--output_dir",
+      "D:\\dataset\\sample_dataset\\output",
+      "--output_name",
+      "qwen-AdamW8bit_1e-3",
+      "--save_every_n_epochs",
+      "1",
+      "--dataset_config",
+      "D:\\dataset\\sample_dataset\\dataset_config_batch1_r8_640.toml",
+      "--seed",
+      "42",
+      "--max_train_epochs",
+      "8",
+      "--max_data_loader_n_workers",
+      "1",
+      "--persistent_data_loader_workers",
+      "--gradient_checkpointing",
+      "--mixed_precision",
+      "bf16",
+      "--learning_rate",
+      "1e-3",
+      "--lr_scheduler",
+      "cosine_with_restarts",
+      "--lr_warmup_steps",
+      "0",
+      "--lr_scheduler_num_cycles",
+      "4",
+      "--network_module",
+      "networks.lora_qwen_image",
+      "--network_dim",
+      "8",
+      "--network_alpha",
+      "4",
+      "--timestep_sampling",
+      "qwen_shift",
+      "--weighting_scheme",
+      "logit_normal",
+      "--guidance_scale",
+      "3.5",
+      "--sdpa",
+      "--fp8_base",
+      "--blocks_to_swap",
+      "40",
+      "--optimizer_type",
+      "bitsandbytes.optim.AdamW8bit",
+      "--optimizer_args",
+      "betas=(0.9,",
+      "0.999)",
+      "--optimizer_args",
+      "eps=1e-8",
+      "--optimizer_args",
+      "weight_decay=0.01"
+    ]
+  }
+}

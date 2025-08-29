@@ -1,0 +1,8 @@
+{
+  "queue_system": {
+    "default_port": 7861,
+    "host": "127.0.0.1",
+    "auto_open": true,
+    "description": "キューシステムのデフォルト設定"
+  }
+}
