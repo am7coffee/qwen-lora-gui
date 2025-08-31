@@ -7,11 +7,12 @@ import webbrowser
 from pathlib import Path
 
 
-def launch_queue_system(port: int = 7862, share: bool = False) -> None:
+def launch_queue_system(port: int = 7862, host: str = "127.0.0.1", share: bool = False) -> None:
     """キューシステムを起動
 
     Args:
         port: ポート番号
+        host: ホストアドレス
         share: 共有リンクを生成するか
     """
     # パスを追加
@@ -30,19 +31,21 @@ def launch_queue_system(port: int = 7862, share: bool = False) -> None:
     print("=" * 60)
     print("Qwen LoRA GUI - Queue System")
     print("=" * 60)
-    print(f"Local URL: http://localhost:{port}")
+    print(f"Local URL: http://{host}:{port}")
 
     if share:
         print("共有URLを生成中...")
 
     # ブラウザを開く
     if not share:
-        webbrowser.open(f"http://localhost:{port}")
+        url = f"http://{'localhost' if host == '127.0.0.1' else host}:{port}"
+        webbrowser.open(url)
 
     # Gradio起動（静的ファイル配信を有効化）
     project_root = Path(__file__).parent.parent.parent.parent.parent
 
     interface.launch(
+        server_name=host,
         server_port=port,
         share=share,
         inbrowser=False,  # 既に手動で開いているため
@@ -62,10 +65,13 @@ def main():
     parser.add_argument(
         "--port", type=int, default=7862, help="ポート番号 (default: 7862)"
     )
+    parser.add_argument(
+        "--host", type=str, default="127.0.0.1", help="ホストアドレス (default: 127.0.0.1)"
+    )
     parser.add_argument("--share", action="store_true", help="共有リンクを生成")
 
     args = parser.parse_args()
-    launch_queue_system(args.port, args.share)
+    launch_queue_system(args.port, args.host, args.share)
 
 
 if __name__ == "__main__":

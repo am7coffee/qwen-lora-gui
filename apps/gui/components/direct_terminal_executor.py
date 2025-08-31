@@ -4,6 +4,9 @@
 """
 
 import subprocess
+import sys
+import shutil
+import json
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
@@ -26,9 +29,9 @@ class DirectTerminalExecutor:
         if not validation["valid"]:
             raise RuntimeError(f"CLIパス検証エラー: {validation['errors']}")
 
-        # バッチファイル保存用ディレクトリ
-        self.batch_dir = Path("data/logs/executions")
-        self.batch_dir.mkdir(parents=True, exist_ok=True)
+        # ログ・実行ファイル保存用ディレクトリ
+        self.log_dir = Path("data/logs/executions")
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def _load_cli_config(self) -> Dict[str, Any]:
         """CLI設定の読み込み"""
@@ -70,30 +73,34 @@ class DirectTerminalExecutor:
         # コマンドの前処理（改行除去）
         clean_command = self._prepare_command(command_text)
 
-        # バッチファイル作成
-        batch_file = self._create_batch_file(command_type, clean_command)
+        if sys.platform == "win32":
+            # Windows: バッチファイル作成して実行
+            batch_file = self._create_batch_file(command_type, clean_command)
 
-        try:
-            # 新規コマンドプロンプトで実行
-            # startコマンドでタイトル付きの新規ウィンドウを開く
-            subprocess.Popen(
-                [
-                    "start",
-                    f"{command_type.upper()} Process",
-                    "cmd",
-                    "/c",
-                    str(batch_file),
-                ],
-                shell=True,
-            )
+            try:
+                # 新規コマンドプロンプトで実行
+                # startコマンドでタイトル付きの新規ウィンドウを開く
+                subprocess.Popen(
+                    [
+                        "start",
+                        f"{command_type.upper()} Process",
+                        "cmd",
+                        "/c",
+                        str(batch_file),
+                    ],
+                    shell=True,
+                )
 
-            return {
-                "success": True,
-                "message": f"✅ {command_type}プロセスを新しいターミナルで起動しました",
-            }
+                return {
+                    "success": True,
+                    "message": f"✅ {command_type}プロセスを新しいターミナルで起動しました",
+                }
 
-        except Exception as e:
-            return {"success": False, "message": f"❌ プロセス起動エラー: {str(e)}"}
+            except Exception as e:
+                return {"success": False, "message": f"❌ プロセス起動エラー: {str(e)}"}
+        else:
+            # Linux/Mac: シェルスクリプトを作成して実行
+            return self._execute_linux_command(command_type, clean_command)
 
     def _prepare_command(self, command_text: str) -> str:
         """コマンドを実行用に準備"""
@@ -175,11 +182,128 @@ timeout /t 5 /nobreak > nul
 exit
 '''
 
-        batch_file = self.batch_dir / f"{command_type}_{timestamp}.bat"
+        batch_file = self.log_dir / f"{command_type}_{timestamp}.bat"
         with open(batch_file, "w", encoding="shift_jis") as f:
             f.write(batch_content)
 
         return batch_file
+    
+    def _execute_linux_command(self, command_type: str, command: str) -> Dict[str, Any]:
+        """Linux/Mac環境でコマンドを実行"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # シェルスクリプト作成
+        shell_script = self._create_shell_script(command_type, command)
+        
+        try:
+            # 標準実行を使用（tmux問題回避のため）
+            # gnome-terminalが利用可能な場合
+            if shutil.which("gnome-terminal"):
+                subprocess.Popen(
+                    f'gnome-terminal -- bash "{shell_script}"',
+                    shell=True
+                )
+                
+                return {
+                    "success": True,
+                    "message": f"✅ {command_type}プロセスを新しいターミナルで起動しました",
+                }
+            
+            # xtermが利用可能な場合
+            elif shutil.which("xterm"):
+                subprocess.Popen(
+                    f'xterm -e bash "{shell_script}"',
+                    shell=True
+                )
+                
+                return {
+                    "success": True,
+                    "message": f"✅ {command_type}プロセスを新しいターミナルで起動しました",
+                }
+            
+            # どれも利用できない場合はnohupで実行
+            else:
+                log_file = self.log_dir / f"{command_type}_{timestamp}.log"
+                subprocess.Popen(
+                    f'nohup bash "{shell_script}" > "{log_file}" 2>&1 &',
+                    shell=True
+                )
+                
+                return {
+                    "success": True,
+                    "message": f"✅ {command_type}プロセスをバックグラウンドで起動しました\nログ: {log_file}",
+                }
+                
+        except Exception as e:
+            return {"success": False, "message": f"❌ Linux環境でのプロセス起動エラー: {str(e)}"}
+    
+    def _create_shell_script(self, command_type: str, command: str) -> Path:
+        """Linux/Mac用シェルスクリプトを作成"""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        shell_content = f'''#!/bin/bash
+
+echo "========================================"
+echo "Starting {command_type.upper()} Process"
+echo "========================================"
+echo
+echo "Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"
+echo
+
+# ディレクトリ変更
+echo "Changing directory to CLI root..."
+cd "{self.cli_root}"
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to change directory to {self.cli_root}"
+    read -p "Press Enter to exit..."
+    exit 1
+fi
+
+echo "Current directory: $(pwd)"
+echo
+
+# 仮想環境アクティベート
+echo "Activating virtual environment..."
+if [ -f "{self.cli_venv}/bin/activate" ]; then
+    source "{self.cli_venv}/bin/activate"
+else
+    echo "[ERROR] Virtual environment not found at {self.cli_venv}"
+    read -p "Press Enter to exit..."
+    exit 1
+fi
+
+echo
+echo "Executing command..."
+echo "Command: {command}"
+echo "========================================"
+echo
+
+# コマンド実行
+{command}
+
+EXITCODE=$?
+
+echo
+echo "========================================"
+if [ $EXITCODE -eq 0 ]; then
+    echo "Process completed successfully."
+else
+    echo "Process terminated with error code $EXITCODE."
+fi
+echo "========================================"
+
+# 終了待ち
+read -p "Press Enter to close this window..."
+'''
+        
+        shell_file = self.log_dir / f"{command_type}_{timestamp}.sh"
+        with open(shell_file, "w", encoding="utf-8") as f:
+            f.write(shell_content)
+        
+        # 実行権限付与
+        shell_file.chmod(0o755)
+        
+        return shell_file
 
 
 # グローバルインスタンス
