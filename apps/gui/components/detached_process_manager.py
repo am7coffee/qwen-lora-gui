@@ -8,6 +8,7 @@ import sys
 import json
 import time
 import os
+import shutil
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional, Generator
@@ -180,6 +181,19 @@ class DetachedProcessManager:
                     except Exception:
                         pass  # ログファイルへの書き込みが失敗しても続行
 
+                # Linux環境でtmuxセッションがある場合は終了
+                if sys.platform != "win32" and "session_name" in state:
+                    session_name = state["session_name"]
+                    if shutil.which("tmux"):
+                        try:
+                            # tmuxセッションを終了
+                            subprocess.run(
+                                ["tmux", "kill-session", "-t", session_name],
+                                capture_output=True
+                            )
+                        except Exception:
+                            pass  # エラーは無視（既に終了している可能性）
+                
                 # プロセス状態をクリア
                 self.clear_state()
 
@@ -635,6 +649,147 @@ exit
             f.write(batch_content)
 
         return batch_file
+    
+    def _start_linux_process(self, command: str, command_type: str, log_file: Path) -> Dict[str, Any]:
+        """Linux環境でのプロセス起動"""
+        # シェルスクリプト作成
+        shell_script = self._create_shell_script(command_type, command, log_file)
+        
+        try:
+            # nohupで標準実行（tmux問題回避のため）
+            
+            # nohupでバックグラウンド実行
+            process = subprocess.Popen(
+                f'nohup bash "{shell_script}" > /dev/null 2>&1 &',
+                shell=True
+            )
+            
+            # プロセスが起動するまで少し待つ
+            time.sleep(1.0)
+            
+            state = {
+                "pid": process.pid,
+                "command_type": command_type,
+                "command": command[:500],
+                "log_file": str(log_file),
+                "started_at": datetime.now().isoformat(),
+                "status": "running",
+                "shell_script": str(shell_script),
+            }
+            self.save_state(state)
+            
+            return {
+                "success": True,
+                "pid": process.pid,
+                "log_file": str(log_file),
+                "message": f"✅ {command_type}プロセスをバックグラウンドで起動しました\n💡 実行状況: ps aux | grep musubi_tuner で確認可能",
+                }
+                
+        except Exception as e:
+            return {"success": False, "message": f"❌ Linux環境でのプロセス起動エラー: {str(e)}"}
+    
+    def _create_shell_script(self, command_type: str, command: str, log_file: Path) -> Path:
+        """Linuxシェルスクリプトを作成"""
+        from core.config.path_resolver import PathResolver
+        
+        # PathResolverでCLI設定を取得
+        path_resolver = PathResolver()
+        config = self._load_cli_config()
+        cli_root, cli_venv = path_resolver.get_cli_paths(config)
+        
+        # コマンドの前処理
+        clean_command = self._prepare_command(command)
+        
+        # ログファイルの絶対パス取得
+        abs_log_file = log_file.resolve()
+        
+        # 停止信号ファイルのパス
+        stop_signal_file = abs_log_file.parent / f"{command_type}_stop_signal.txt"
+        
+        shell_content = f'''#!/bin/bash
+set -e
+
+echo "========================================"
+echo "Starting {command_type} process"
+echo "========================================"
+echo
+
+# ディレクトリ変更
+echo "Changing directory to CLI root..."
+cd "{cli_root}"
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Failed to change directory to {cli_root}" >> "{abs_log_file}"
+    exit 1
+fi
+
+echo "Current directory: $(pwd)"
+echo
+
+# 仮想環境アクティベート
+echo "Activating virtual environment..."
+if [ -f "{cli_venv}/bin/activate" ]; then
+    source "{cli_venv}/bin/activate"
+else
+    echo "[ERROR] Virtual environment not found at {cli_venv}" >> "{abs_log_file}"
+    exit 1
+fi
+
+# 停止信号ファイル削除
+rm -f "{stop_signal_file}"
+
+echo "Executing command..."
+echo "Command: {clean_command}"
+echo
+echo "Stop signal file: {stop_signal_file}"
+echo "To stop this process, create the above file"
+echo
+
+# Pythonラッパーで実行（停止信号監視付き）
+python3 << 'EOF'
+import subprocess
+import sys
+import os
+import time
+from pathlib import Path
+
+stop_signal = Path("{stop_signal_file}")
+cmd = "{clean_command}"
+
+# プロセス開始
+proc = subprocess.Popen(cmd, shell=True)
+
+# 停止信号監視
+while proc.poll() is None:
+    if stop_signal.exists():
+        print("\\n[USER_TERMINATED] Stop signal detected")
+        proc.terminate()
+        time.sleep(2)
+        if proc.poll() is None:
+            proc.kill()
+        sys.exit(1)
+    time.sleep(1)
+
+sys.exit(proc.returncode)
+EOF
+
+EXITCODE=$?
+echo "[PROCESS_COMPLETED]" >> "{abs_log_file}"
+
+if [ $EXITCODE -eq 0 ]; then
+    echo "Process completed successfully."
+else
+    echo "Process terminated with code $EXITCODE."
+fi
+'''
+        
+        shell_file = self.log_dir / f"{command_type}_detached.sh"
+        with open(shell_file, "w", encoding="utf-8") as f:
+            f.write(shell_content)
+        
+        # 実行権限付与
+        shell_file.chmod(0o755)
+        
+        return shell_file
 
     def _prepare_command(self, command_text: str) -> str:
         """コマンドを実行用に準備"""

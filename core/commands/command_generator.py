@@ -3,6 +3,8 @@
 """
 
 from typing import Dict, Any, List
+import sys
+import shlex
 
 
 class CommandGenerator:
@@ -316,15 +318,21 @@ class CommandGenerator:
             if value is None or value == "":
                 continue
 
-            # タプル形式（betasなど）の処理
-            if key in ["betas"] and isinstance(value, str) and "(" in value:
-                args_list.append(f"--optimizer_args {key}={value}")
-            # 真偽値の処理
-            elif value in ["true", "false"]:
-                args_list.append(f"--optimizer_args {key}={value}")
-            # その他の値
+            # プラットフォーム別の引用符処理
+            if sys.platform != "win32":
+                # Linux/Mac: shlex.quoteでシェル用にエスケープ
+                args_list.append(f"--optimizer_args {shlex.quote(f'{key}={value}')}")
             else:
-                args_list.append(f"--optimizer_args {key}={value}")
+                # Windows: 二重引用符で囲む
+                # タプル形式（betasなど）の処理
+                if key in ["betas"] and isinstance(value, str) and "(" in value:
+                    args_list.append(f'--optimizer_args {key}="{value}"')
+                # 真偽値の処理
+                elif value in ["true", "false"]:
+                    args_list.append(f'--optimizer_args {key}="{value}"')
+                # その他の値
+                else:
+                    args_list.append(f'--optimizer_args {key}="{value}"')
 
         return args_list
 

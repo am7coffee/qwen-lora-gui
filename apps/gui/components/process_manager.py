@@ -61,10 +61,21 @@ class QueueProcessManager:
             return False, f"WARN: キューシステムは既にポート {port} で稼働中です", None
 
         try:
-            # 現在のGUIプロセスと同じPython実行ファイルを使用
-            # 正しいプロジェクトルートから launch_queue.py を起動
+            # 設定ファイルから読み込み
+            config = self.load_config()
+            queue_config = config.get("queue_system", {})
+            
+            # コマンド構築
+            cmd = [sys.executable, str(self.launch_script), "--port", str(port)]
+            
+            # shareオプションの追加
+            if queue_config.get("enable_share", False):
+                share_host = queue_config.get("share_host", "0.0.0.0")
+                cmd.extend(["--host", share_host, "--share"])
+            
+            # プロセス起動
             process = subprocess.Popen(
-                [sys.executable, str(self.launch_script), "--port", str(port)],
+                cmd,
                 creationflags=subprocess.CREATE_NEW_CONSOLE
                 if sys.platform == "win32"
                 else 0,

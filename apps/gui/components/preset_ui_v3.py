@@ -83,7 +83,7 @@ class PresetUIV3:
                     export_btn = gr.Button("📤 エクスポート", variant="secondary")
                 
                 # インポート・エクスポート機能説明
-                import_export_help = gr.Markdown("""
+                gr.Markdown("""
 **📥 インポート**: 外部に保存したプリセットの内容を画面に反映します（リストへは追加しません）  
 **📤 エクスポート**: プリセット選択→エクスポート→ファイルサイズをクリックするとダウンロードします
 """, elem_id="preset_import_export_help")

@@ -32,6 +32,9 @@ def get_port_from_config_and_args():
     parser.add_argument(
         "--port", type=int, help="ポート番号（設定ファイルの値を上書き）"
     )
+    parser.add_argument(
+        "--host", type=str, default="127.0.0.1", help="バインドするホストアドレス (デフォルト: 127.0.0.1)"
+    )
     parser.add_argument("--share", action="store_true", help="Gradio共有リンクを有効化")
 
     args = parser.parse_args()
@@ -39,17 +42,17 @@ def get_port_from_config_and_args():
     # 1. コマンドライン引数が最優先
     if args.port:
         print(f"コマンドライン引数でポート指定: {args.port}")
-        return args.port, args.share
+        return args.port, args.host, args.share
 
     # 2. 設定ファイルから取得
     config = load_queue_config()
     default_port = config.get("queue_system", {}).get("default_port", 7862)
     print(f"設定ファイルからポート取得: {default_port}")
 
-    return default_port, args.share
+    return default_port, args.host, args.share
 
 
 if __name__ == "__main__":
-    port, share = get_port_from_config_and_args()
-    print(f"キューシステムをポート {port} で起動します...")
-    launch_queue_system(port=port, share=share)
+    port, host, share = get_port_from_config_and_args()
+    print(f"キューシステムを {host}:{port} で起動します...")
+    launch_queue_system(port=port, host=host, share=share)

@@ -54,8 +54,8 @@
           "name": "optim_bits",
           "display_name": "量子化ビット数",
           "type": "choice",
-          "choices": [6, 8, 32],
-          "default": 6,
+          "choices": ["6", "8", "32"],
+          "default": "6",
           "required": false,
           "description": "オプティマイザー状態の量子化ビット数",
           "ui_component": "dropdown"

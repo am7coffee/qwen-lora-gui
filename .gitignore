@@ -33,3 +33,8 @@ nul
 # Temporary files
 *.tmp
 *.temp
+
+# Additional exclusions
+.claude/
+.gradio/
+data/queue_system/

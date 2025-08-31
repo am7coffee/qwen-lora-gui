@@ -1,6 +1,6 @@
 {
-  "enabled": true,
-  "webhook_url": "https://hooks.slack.com/services/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "enabled": false,
+  "webhook_url": "xxxxxxxxxx",
   "notify_on_start": true,
   "notify_on_complete": true,
   "notify_on_error": true,

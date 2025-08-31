@@ -248,13 +248,13 @@ class TaskExecutor:
                 )
                 monitor_thread.start()
 
-            # Windowsの場合、擬似TTYを使用してリアルタイム出力を実現
+            # 全プラットフォームで標準実行を使用（出力の完全性を優先）
             if sys.platform == "win32":
                 return self._execute_with_pseudo_tty(
                     command, log_file, cli_root, progress_monitor, monitor_thread
                 )
             else:
-                # Unix系の場合は既存の実装を使用
+                # Linux環境でも標準実行を使用（tmux出力問題を回避）
                 return self._execute_standard(
                     command, log_file, cli_root, progress_monitor, monitor_thread
                 )
@@ -731,6 +731,325 @@ class TaskExecutor:
                             return False
 
             time.sleep(1)
+
+    def _execute_with_tmux(
+        self,
+        command: List[str],
+        log_file: Path,
+        cli_root: Path,
+        progress_monitor,
+        monitor_thread,
+    ) -> bool:
+        """tmuxセッションでコマンドを実行（Linux/Unix用）
+        
+        tmuxを使用することで、SSH切断後も処理を継続できる。
+        セッション内の出力を定期的にキャプチャしてログファイルに保存。
+        """
+        try:
+            # セッション名を生成（タスクIDとタイムスタンプを使用）
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            session_name = f"queue_{self.current_task.id if self.current_task else 'unknown'}_{timestamp}"
+            
+            # 既存のセッションをチェック（名前衝突回避）
+            check_session = subprocess.run(
+                ["tmux", "has-session", "-t", session_name],
+                capture_output=True,
+                text=True
+            )
+            
+            if check_session.returncode == 0:
+                # 既存セッションがある場合は別名にする
+                import random
+                session_name = f"{session_name}_{random.randint(1000, 9999)}"
+            
+            # Python出力のバッファリングを無効化
+            env = os.environ.copy()
+            env["PYTHONUNBUFFERED"] = "1"
+            env["PYTHONIOENCODING"] = "utf-8"
+            
+            # コマンドを文字列に変換
+            command_str = " ".join(command)
+            
+            # tmuxセッションを作成してコマンドを実行
+            # -d: デタッチモード, -s: セッション名, -c: 作業ディレクトリ
+            # trap設定でプロセス管理を改善（クォートエスケープ修正）
+            trap_command = f'trap "echo Terminating all child processes...; kill 0" EXIT TERM INT; {command_str}'
+            tmux_create_cmd = [
+                "tmux", "new-session", "-d", "-s", session_name,
+                "-c", str(cli_root),
+                f"PYTHONUNBUFFERED=1 PYTHONIOENCODING=utf-8 bash -c '{trap_command}'"
+            ]
+            
+            # セッション作成
+            create_result = subprocess.run(
+                tmux_create_cmd,
+                capture_output=True,
+                text=True,
+                cwd=cli_root
+            )
+            
+            if create_result.returncode != 0:
+                # tmuxセッション作成失敗時は標準実装にフォールバック
+                with open(log_file, "a", encoding="utf-8") as f:
+                    f.write(f"\n[警告] tmuxセッション作成失敗: {create_result.stderr}\n")
+                    f.write("[情報] 標準実行モードにフォールバックします\n")
+                return self._execute_standard(
+                    command, log_file, cli_root, progress_monitor, monitor_thread
+                )
+            
+            with open(log_file, "a", encoding="utf-8") as f:
+                f.write(f"\n[情報] tmuxセッション '{session_name}' で実行開始\n")
+                f.flush()
+            
+            # セッション監視
+            return self._monitor_tmux_session(
+                session_name, log_file, progress_monitor, monitor_thread
+            )
+            
+        except Exception as e:
+            with open(log_file, "a", encoding="utf-8") as f:
+                f.write(f"\n[エラー] tmux実行エラー: {str(e)}\n")
+                f.write("[情報] 標準実行モードにフォールバックします\n")
+            # エラー時は標準実装にフォールバック
+            return self._execute_standard(
+                command, log_file, cli_root, progress_monitor, monitor_thread
+            )
+    
+    def _monitor_tmux_session(
+        self,
+        session_name: str,
+        log_file: Path,
+        progress_monitor,
+        monitor_thread,
+    ) -> bool:
+        """tmuxセッションを監視してログを取得"""
+        last_output = ""
+        consecutive_errors = 0
+        max_consecutive_errors = 5
+        
+        while True:
+            # 停止フラグチェック
+            if self._stop_flag.is_set():
+                # セッションにCtrl+Cを送信
+                subprocess.run(
+                    ["tmux", "send-keys", "-t", session_name, "C-c"],
+                    capture_output=True
+                )
+                time.sleep(2)
+                
+                # セッションを強制終了
+                subprocess.run(
+                    ["tmux", "kill-session", "-t", session_name],
+                    capture_output=True
+                )
+                
+                if progress_monitor:
+                    progress_monitor.stop_monitoring()
+                
+                with open(log_file, "a", encoding="utf-8") as f:
+                    f.write("\n[プロセスが中断されました]\n")
+                return False
+            
+            # セッション存在確認
+            check_result = subprocess.run(
+                ["tmux", "has-session", "-t", session_name],
+                capture_output=True,
+                text=True
+            )
+            
+            if check_result.returncode != 0:
+                # セッションが終了している
+                if progress_monitor:
+                    progress_monitor.stop_monitoring()
+                    if monitor_thread:
+                        monitor_thread.join(timeout=1)
+                
+                # 最終的なログ内容を取得
+                self._capture_tmux_output(session_name, log_file, last_output)
+                
+                # ログから成功を判定
+                return self._check_log_for_success(log_file)
+            
+            # セッション出力をキャプチャ
+            try:
+                last_output = self._capture_tmux_output(session_name, log_file, last_output)
+                consecutive_errors = 0
+            except Exception as e:
+                consecutive_errors += 1
+                if consecutive_errors >= max_consecutive_errors:
+                    with open(log_file, "a", encoding="utf-8") as f:
+                        f.write(f"\n[エラー] tmux出力取得エラーが連続: {str(e)}\n")
+                    break
+            
+            time.sleep(1)
+        
+        # エラーによる終了
+        if progress_monitor:
+            progress_monitor.stop_monitoring()
+        return False
+    
+    def _capture_tmux_output(
+        self,
+        session_name: str,
+        log_file: Path,
+        last_output: str
+    ) -> str:
+        """tmuxセッションの出力をキャプチャしてログに追記"""
+        # tmux capture-paneで出力を取得
+        capture_result = subprocess.run(
+            ["tmux", "capture-pane", "-t", session_name, "-p", "-S", "-"],
+            capture_output=True,
+            text=True,
+            errors="replace"
+        )
+        
+        if capture_result.returncode == 0:
+            current_output = capture_result.stdout
+            
+            # 新しい出力部分のみを抽出
+            if len(current_output) > len(last_output):
+                new_lines = current_output[len(last_output):]
+                if new_lines.strip():
+                    with open(log_file, "a", encoding="utf-8", errors="replace") as f:
+                        f.write(new_lines)
+                        f.flush()
+            
+            return current_output
+        
+        return last_output
+    
+    def _check_log_for_success(self, log_file: Path) -> bool:
+        """タスク種別に応じた成功判定"""
+        
+        # 1. プロセス終了コード判定（全タスク共通）
+        # TODO: tmux環境でのプロセス終了コード取得問題のため一時的にコメントアウト
+        # if not self._check_process_exit_code():
+        #     return False  # 異常終了 = エラー
+        
+        # 2. タスク種別による判定
+        if self.current_task and self.current_task.current_subtask:
+            task_type = self.current_task.current_subtask
+            
+            # キャッシュ生成タスク：画像処理件数で判定
+            if task_type in ["latent_cache", "te_cache"]:
+                return self._check_completion_by_count(log_file)
+            
+            # 学習タスク：進捗バー完了で判定
+            elif task_type == "training":
+                return self._check_training_completion(log_file)
+        
+        # 旧来の成功パターン判定（フォールバック）
+        return self._check_legacy_patterns(log_file)
+
+    def _check_process_exit_code(self) -> bool:
+        """プロセス終了コードをチェック"""
+        if self.current_process is None:
+            return False
+        
+        # プロセスが終了していない場合は待機
+        if self.current_process.poll() is None:
+            return False
+        
+        # 終了コード0 = 正常終了
+        return self.current_process.returncode == 0
+
+    def _check_completion_by_count(self, log_file: Path) -> bool:
+        """画像枚数と処理済み件数を照合"""
+        import re
+        
+        try:
+            content = log_file.read_text(encoding="utf-8", errors="ignore")
+            
+            # 画像枚数を取得
+            found_match = re.search(r"found (\d+) images", content)
+            if not found_match:
+                return False
+            expected_count = int(found_match.group(1))
+            
+            # 最終処理件数を取得 (進捗表示の最後の数値)
+            progress_matches = re.findall(r"(\d+)it \[", content)
+            if not progress_matches:
+                return False
+            final_count = int(progress_matches[-1])
+            
+            # 処理件数が期待値と一致するかチェック
+            return final_count == expected_count
+            
+        except Exception:
+            return False
+
+    def _check_training_completion(self, log_file: Path) -> bool:
+        """学習タスクの完了を進捗バーで判定"""
+        import re
+        
+        try:
+            content = log_file.read_text(encoding="utf-8", errors="ignore")
+            
+            # 学習完了パターンを検索
+            # steps: 100%|██████████| 640/640 [19:28<00:00, 1.83s/it, avr_loss=0.0778]
+            training_complete_pattern = r"steps:\s*100%\|.*\|\s*\d+/\d+\s*\["
+            
+            if re.search(training_complete_pattern, content):
+                return True
+            
+            return False
+            
+        except Exception:
+            return False
+
+    def _check_legacy_patterns(self, log_file: Path) -> bool:
+        """旧来の成功パターン判定（フォールバック用）"""
+        success_patterns = [
+            "successfully saved",
+            "save trained model", 
+            "training completed",
+            "saved safetensors",
+            "model saved",
+            "caching completed",
+            "latents cached",
+            "text encoder outputs cached",
+            "100%|",
+            "done!",
+            "finished",
+            "cache saved",
+            "latent saved",
+            "all latents saved",
+            "te output saved",
+            "text encoder output saved",
+            "vae encoded",
+        ]
+        
+        error_patterns = [
+            "error",
+            "exception", 
+            "traceback",
+            "failed",
+            "cuda out of memory",
+            "killed",
+        ]
+        
+        try:
+            with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
+                content = f.read().lower()
+                
+                # エラーパターンのチェック（wandbやwarning関連は除外）
+                for pattern in error_patterns:
+                    if pattern in content:
+                        if "wandb" in content and "error" in pattern:
+                            continue
+                        if "warning" in content and "error" in pattern:
+                            continue
+                        return False
+                
+                # 成功パターンのチェック
+                for pattern in success_patterns:
+                    if pattern in content:
+                        return True
+        
+        except Exception:
+            pass
+        
+        return False
 
     def _read_output_and_save(self, process: subprocess.Popen, log_file: Path):
         """プロセス出力を読み取ってファイルに保存"""

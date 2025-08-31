@@ -2478,6 +2478,7 @@ def create_interface_v4() -> gr.Blocks:
             fn=handle_import,
             inputs=[preset_ui_components["import_btn"]],
             outputs=[preset_ui_components["status"]]
+            + [preset_ui_components["preset_name"]]
             + all_inputs
             + optimizer_args_components,
         ).then(
