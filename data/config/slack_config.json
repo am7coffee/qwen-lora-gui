@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "webhook_url": "xxxxxxxxxx",
+  "notify_on_start": true,
+  "notify_on_complete": true,
+  "notify_on_error": true,
+  "notify_on_queue_start": true,
+  "notify_on_queue_complete": true,
+  "notify_progress": true,
+  "progress_interval": 25,
+  "include_gpu_info": true
+}
