@@ -1,5 +1,5 @@
 {
-  "enabled": true,
+  "enabled": false,
   "webhook_url": "xxxxxxxxxx",
   "notify_on_start": true,
   "notify_on_complete": true,

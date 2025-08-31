@@ -35,7 +35,6 @@ class DirectTerminalExecutor:
 
     def _load_cli_config(self) -> Dict[str, Any]:
         """CLI設定の読み込み"""
-        import json
 
         config_path = Path("data/config/cli_settings.json")
         if config_path.exists():

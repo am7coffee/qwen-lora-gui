@@ -8,7 +8,6 @@ import subprocess
 import sys
 import threading
 import time
-import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple

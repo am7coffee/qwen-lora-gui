@@ -8,6 +8,7 @@ import sys
 import json
 import time
 import os
+import shutil
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional, Generator
@@ -190,7 +191,7 @@ class DetachedProcessManager:
                                 ["tmux", "kill-session", "-t", session_name],
                                 capture_output=True
                             )
-                        except:
+                        except Exception:
                             pass  # エラーは無視（既に終了している可能性）
                 
                 # プロセス状態をクリア
@@ -656,7 +657,6 @@ exit
         
         try:
             # nohupで標準実行（tmux問題回避のため）
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             
             # nohupでバックグラウンド実行
             process = subprocess.Popen(
