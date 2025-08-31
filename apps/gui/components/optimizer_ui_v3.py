@@ -197,7 +197,7 @@ class OptimizerUIV3:
                         gr.update(visible=False),  # enabled
                         gr.update(visible=False),  # number
                         gr.update(visible=False),  # text
-                        gr.update(visible=False),  # checkbox
+                        gr.update(visible=False, value=None),  # checkbox - valueをリセット
                         gr.update(visible=False),  # dropdown
                         gr.update(visible=False),  # tuple1
                         gr.update(visible=False),  # tuple2
@@ -237,7 +237,7 @@ class OptimizerUIV3:
                         gr.update(visible=False),  # enabled
                         gr.update(visible=False),  # number
                         gr.update(visible=False),  # text
-                        gr.update(visible=False),  # checkbox
+                        gr.update(visible=False, value=None),  # checkbox - valueをリセット
                         gr.update(visible=False),  # dropdown
                         gr.update(visible=False),  # tuple1
                         gr.update(visible=False),  # tuple2
@@ -296,7 +296,7 @@ class OptimizerUIV3:
             updates.extend(
                 [
                     gr.update(visible=False),  # text
-                    gr.update(visible=False),  # checkbox
+                    gr.update(visible=False, value=None),  # checkbox - valueをリセット
                     gr.update(visible=False),  # dropdown
                     gr.update(visible=False),  # tuple1
                     gr.update(visible=False),  # tuple2
@@ -311,19 +311,21 @@ class OptimizerUIV3:
                 if actual_value is not None
                 else (str(arg.default) if arg.default is not None else "")
             )
-            updates.append(
-                gr.update(
-                    visible=True,
-                    label=f"--{arg.name}",
-                    value=value,
-                    placeholder=getattr(arg, "placeholder", arg.description),
-                    info=arg.display_name,  # infoでツールチップとして表示
-                    elem_id=f"opt-arg-{arg_idx}-text",
-                )
-            )
+            text_update_args = {
+                "visible": True,
+                "label": f"--{arg.name}",
+                "value": value,
+                "info": arg.display_name,  # infoでツールチップとして表示
+                "elem_id": f"opt-arg-{arg_idx}-text",
+            }
+            # Textboxの場合のみplaceholderを追加
+            placeholder_value = getattr(arg, "placeholder", getattr(arg, "description", ""))
+            if placeholder_value:
+                text_update_args["placeholder"] = placeholder_value
+            updates.append(gr.update(**text_update_args))
             updates.extend(
                 [
-                    gr.update(visible=False),  # checkbox
+                    gr.update(visible=False, value=None),  # checkbox - valueをリセット
                     gr.update(visible=False),  # dropdown
                     gr.update(visible=False),  # tuple1
                     gr.update(visible=False),  # tuple2
@@ -339,17 +341,24 @@ class OptimizerUIV3:
                 [
                     gr.update(visible=False),  # number
                     gr.update(visible=False),  # text
-                    gr.update(visible=False),  # checkbox
+                    gr.update(visible=False, value=None),  # checkbox - valueをリセット
                 ]
             )
+            # Dropdownの値を文字列に変換
+            default_value = arg.default
+            if default_value is not None:
+                default_value = str(default_value)
+            elif arg.choices:
+                default_value = arg.choices[0]
+            else:
+                default_value = None
+                
             updates.append(
                 gr.update(
                     visible=True,
                     label=f"--{arg.name}",
                     choices=arg.choices or [],
-                    value=arg.default
-                    if arg.default
-                    else (arg.choices[0] if arg.choices else None),
+                    value=default_value,
                     info=arg.display_name,  # infoでツールチップとして表示
                     elem_id=f"opt-arg-{arg_idx}-dropdown",
                 )
@@ -377,7 +386,7 @@ class OptimizerUIV3:
             )
             updates.extend(
                 [
-                    gr.update(visible=False),  # checkbox
+                    gr.update(visible=False, value=None),  # checkbox - valueをリセット
                     gr.update(visible=False),  # dropdown
                     gr.update(visible=False),  # tuple1
                     gr.update(visible=False),  # tuple2

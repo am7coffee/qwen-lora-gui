@@ -10,7 +10,7 @@ from pathlib import Path
 # appsディレクトリをパスに追加
 sys.path.insert(0, str(Path(__file__).parent))
 
-from apps.gui.components.parameter_collector_v4 import create_parameter_ui
+from apps.gui.main import main as gui_main
 
 
 def cleanup_execution_files():
@@ -133,32 +133,8 @@ def main():
     cleanup_execution_files()
     print("=== Cleanup Completed ===")
 
-    parser = argparse.ArgumentParser(
-        description="QWEN-Image LoRA学習コマンド生成ツール"
-    )
-    parser.add_argument(
-        "--port", type=int, default=7860, help="サーバーポート番号 (デフォルト: 7860)"
-    )
-    parser.add_argument(
-        "--host", type=str, default="127.0.0.1", help="バインドするホストアドレス (デフォルト: 127.0.0.1)"
-    )
-    parser.add_argument(
-        "--no-browser", action="store_true", help="ブラウザの自動表示を無効にする"
-    )
-
-    args = parser.parse_args()
-
-    # v3インターフェースを使用
-    demo = create_parameter_ui()
-
-    demo.launch(
-        server_name=args.host,
-        server_port=args.port,
-        share=False,
-        debug=False,
-        inbrowser=not args.no_browser,
-        favicon_path=str(Path(__file__).parent / "data" / "icon" / "am7coffee_gui.svg"),
-    )
+    # apps/gui/main.py に処理を委譲
+    gui_main()
 
 
 if __name__ == "__main__":
